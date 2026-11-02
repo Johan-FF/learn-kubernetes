@@ -1,0 +1,10 @@
+{
+  "name": "ping-pong",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ping-pong counter application of the DevOps with Kubernetes course",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
