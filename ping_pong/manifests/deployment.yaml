@@ -15,16 +15,35 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: ping_pong:2.1
+          image: ping_pong:2.7
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           env:
             - name: PORT
               value: "3000"
+            - name: PG_HOST
+              value: postgres-svc
+            - name: PG_PORT
+              value: "5432"
+            - name: PG_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_USER
+            - name: PG_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_DB
+            - name: PG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
           resources:
             requests:
               cpu: 10m
-              memory: 32Mi
+              memory: 48Mi
             limits:
               memory: 128Mi
