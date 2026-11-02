@@ -1,0 +1,10 @@
+{
+  "name": "log-output",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Exercise 1.1: prints a startup-generated random string with a timestamp every 5 seconds",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
