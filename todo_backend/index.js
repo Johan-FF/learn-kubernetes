@@ -1,20 +1,28 @@
 'use strict';
 
 const http = require('http');
+const { Pool } = require('pg');
 
-const PORT = Number(process.env.PORT);
-if (!PORT) {
-  console.error('missing required environment variable PORT');
-  process.exit(1);
-}
+const required = (name) => {
+  const value = process.env[name];
+  if (value === undefined || value === '') {
+    console.error(`missing required environment variable ${name}`);
+    process.exit(1);
+  }
 
-// Todos are kept in memory until the database exercise.
-let todos = [
-  { id: 1, text: 'Learn Kubernetes basics' },
-  { id: 2, text: 'Build the todo application' },
-  { id: 3, text: 'Cache the random image' },
-];
-let nextId = 4;
+  return value;
+};
+
+const PORT = Number(required('PORT'));
+
+const pool = new Pool({
+  host: required('PG_HOST'),
+  port: Number(required('PG_PORT')),
+  user: required('PG_USER'),
+  password: required('PG_PASSWORD'),
+  database: required('PG_DATABASE'),
+  max: 5,
+});
 
 const sendJson = (res, status, payload) => {
   const body = JSON.stringify(payload);
@@ -48,11 +56,52 @@ const parseTodo = (body, contentType) => {
   return new URLSearchParams(body).get('text') || new URLSearchParams(body).get('todo') || '';
 };
 
+const initialise = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS todos (
+      id serial PRIMARY KEY,
+      text text NOT NULL
+    )
+  `);
+};
+
+let schemaReady = false;
+
+const ensureSchema = async () => {
+  if (schemaReady) {
+    return;
+  }
+
+  await initialise();
+  schemaReady = true;
+  console.log('database ready');
+};
+
+const waitForDatabase = async () => {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await ensureSchema();
+      return;
+    } catch (error) {
+      console.error(`database not ready (attempt ${attempt}): ${error.message}`);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+};
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
   if (req.method === 'GET' && url.pathname === '/todos') {
-    sendJson(res, 200, todos);
+    try {
+      await ensureSchema();
+      const { rows } = await pool.query('SELECT id, text FROM todos ORDER BY id');
+      sendJson(res, 200, rows);
+    } catch (error) {
+      console.error(`could not read todos: ${error.message}`);
+      sendJson(res, 503, { error: 'database unavailable' });
+    }
+
     return;
   }
 
@@ -71,10 +120,18 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    const todo = { id: nextId, text };
-    nextId += 1;
-    todos.push(todo);
-    sendJson(res, 201, todo);
+    try {
+      await ensureSchema();
+      const { rows } = await pool.query(
+        'INSERT INTO todos (text) VALUES ($1) RETURNING id, text',
+        [text],
+      );
+      sendJson(res, 201, rows[0]);
+    } catch (error) {
+      console.error(`could not save todo: ${error.message}`);
+      sendJson(res, 503, { error: 'database unavailable' });
+    }
+
     return;
   }
 
@@ -88,4 +145,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Server started in port ${PORT}`);
+  waitForDatabase();
 });
