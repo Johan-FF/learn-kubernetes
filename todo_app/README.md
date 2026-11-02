@@ -28,3 +28,16 @@ kubectl logs deployment/todo-app-dep
 
 The port is configured through the `PORT` environment variable, which the Deployment sets and the
 image also defaults to `3000`.
+
+## Declarative deployment (exercise 1.4)
+
+The project deployment is `manifests/deployment.yaml` and is the only source of truth for how the
+application runs in the cluster:
+
+```bash
+kubectl apply -f manifests/deployment.yaml
+kubectl rollout status deployment/todo-app-dep
+```
+
+No port is exposed to the outside yet; networking is added in later exercises.
+
