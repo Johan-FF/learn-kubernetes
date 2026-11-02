@@ -1,0 +1,10 @@
+{
+  "name": "todo-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Todo application of the DevOps with Kubernetes course",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
