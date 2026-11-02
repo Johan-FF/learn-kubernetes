@@ -28,3 +28,17 @@ kubectl logs -f deployment/log-output-dep
 
 The image tag is declared in `manifests/deployment.yaml`; update it when a later exercise
 changes the output so the cluster picks up the new build.
+
+## Declarative deployment (exercise 1.3)
+
+The Deployment exists only as `manifests/deployment.yaml`. Kubernetes is reconciled to that file
+with `kubectl apply`, so a change of image tag or replicas is applied the same way:
+
+```bash
+kubectl apply -f manifests/deployment.yaml
+kubectl rollout status deployment/log-output-dep
+```
+
+Deleting the resource is only used when re-creating it from scratch for revision; ordinary
+updates are re-applied on top so the rollout stays available.
+
