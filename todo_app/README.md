@@ -41,3 +41,21 @@ kubectl rollout status deployment/todo-app-dep
 
 No port is exposed to the outside yet; networking is added in later exercises.
 
+## Networking (exercises 1.5 and 1.6)
+
+Local check through the API server, without touching the Service:
+
+```bash
+kubectl port-forward deployment/todo-app-dep 3003:3000
+curl http://127.0.0.1:3003/
+```
+
+`manifests/service.yaml` exposes the application with a NodePort Service: service port `2345`
+forwards to the container port `3000`, and node port `30080` is published by the local k3d
+cluster on `localhost:8082`.
+
+```bash
+kubectl apply -f manifests/service.yaml
+curl http://127.0.0.1:8082/
+```
+
