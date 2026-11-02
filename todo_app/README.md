@@ -1,61 +1,60 @@
 # todo_app
 
-The course project, a todo application. It starts as a minimal web server (exercise 1.2) and
-gains functionality exercise by exercise.
+The course project: a todo application. It starts as a minimal web server (exercise 1.2) and gains
+functionality exercise by exercise.
 
 ## Run locally
 
 ```bash
-PORT=3001 npm start
+PORT=3001 CACHE_DIR=./cache npm start
 ```
 
 Prints `Server started in port <PORT>` when it is up.
 
+## Routes
+
+| Route | Response |
+| --- | --- |
+| `GET /` | The HTML page |
+| `GET /image` | The cached random image |
+
+When the application runs behind the shared Traefik ingress it is published under the `/todo`
+prefix, and the server strips that prefix before routing. This lets the project run on the same
+host as the "Log output" application (`/`) and the "Ping-pong" application (`/pingpong`).
+
+## Random image cache (exercise 1.12)
+
+The image is fetched from `https://picsum.photos/1200` and stored in the directory configured with
+`CACHE_DIR`, together with the timestamp of the fetch:
+
+- while the cached image is younger than 10 minutes it is served without contacting the API;
+- after that the next request fetches a new image;
+- if the API is unreachable the previously cached image is still served.
+
+`CACHE_DIR` is mounted from the `todo-cache-pvc` PersistentVolumeClaim, so the image also survives
+pod restarts: the process finds the file and its timestamp on startup.
+
+```bash
+kubectl apply -f volumes
+kubectl apply -f manifests
+kubectl rollout status deployment/todo-app-dep
+curl http://127.0.0.1:8081/todo
+```
+
 ## Build and load the image into k3d
 
 ```bash
-docker build -t todo_app:1.2 .
-k3d image import todo_app:1.2 -c devops
+docker build -t todo_app:1.12 .
+k3d image import todo_app:1.12 -c devops --mode direct
+kubectl rollout restart deployment/todo-app-dep
 ```
 
-## Deploy
+The image tag is declared in `manifests/deployment.yaml`. A rebuilt image with an unchanged tag is
+only picked up after `kubectl rollout restart`, because the Deployment uses
+`imagePullPolicy: IfNotPresent`.
 
-```bash
-kubectl apply -f manifests/deployment.yaml
-kubectl rollout status deployment/todo-app-dep
-kubectl logs deployment/todo-app-dep
-```
+## Networking
 
-The port is configured through the `PORT` environment variable, which the Deployment sets and the
-image also defaults to `3000`.
-
-## Declarative deployment (exercise 1.4)
-
-The project deployment is `manifests/deployment.yaml` and is the only source of truth for how the
-application runs in the cluster:
-
-```bash
-kubectl apply -f manifests/deployment.yaml
-kubectl rollout status deployment/todo-app-dep
-```
-
-No port is exposed to the outside yet; networking is added in later exercises.
-
-## Networking (exercises 1.5 and 1.6)
-
-Local check through the API server, without touching the Service:
-
-```bash
-kubectl port-forward deployment/todo-app-dep 3003:3000
-curl http://127.0.0.1:3003/
-```
-
-`manifests/service.yaml` exposes the application with a NodePort Service: service port `2345`
-forwards to the container port `3000`, and node port `30080` is published by the local k3d
-cluster on `localhost:8082`.
-
-```bash
-kubectl apply -f manifests/service.yaml
-curl http://127.0.0.1:8082/
-```
-
+- `kubectl port-forward deployment/todo-app-dep 3003:3000` for a direct local check.
+- `manifests/service.yaml` is a ClusterIP Service on port `2345`.
+- `manifests/ingress.yaml` publishes the application on the `/todo` path.

@@ -12,15 +12,26 @@ spec:
       labels:
         app: todo-app
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k3d-devops-agent-0
+      volumes:
+        - name: image-cache
+          persistentVolumeClaim:
+            claimName: todo-cache-pvc
       containers:
         - name: todo-app
-          image: todo_app:1.5
+          image: todo_app:1.12
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           env:
             - name: PORT
               value: "3000"
+            - name: CACHE_DIR
+              value: /usr/src/app/cache
+          volumeMounts:
+            - name: image-cache
+              mountPath: /usr/src/app/cache
           resources:
             requests:
               cpu: 10m
