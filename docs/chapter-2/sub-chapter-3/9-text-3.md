@@ -1,0 +1,2 @@
+Gateway API
+In Chapter 4 we will meet yet another way to access our cluster, the Gateway API which is an evolving set of resources and configurations designed to manage network traffic within Kubernetes clusters. It aims to provide a more expressive and extensible way to define how traffic should be routed and controlled, compared to the solutions described on this page.

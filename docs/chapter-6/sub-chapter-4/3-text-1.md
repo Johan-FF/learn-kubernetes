@@ -1,0 +1,6 @@
+Serverless
+Serverless(opens in a new tab) has gained a lot of popularity and it's easy to see why. Be it Google Cloud Run, Knative, OpenFaaS, OpenWhisk, Fission or Kubeless they're running on top of Kubernetes, or at least capable of doing so. The older the serverless platform the more likely it won't be running on Kubernetes. As such a statement like "Kubernetes is competing with serverless" doesn't make much sense.
+
+As this isn't a serverless course we won't go into depth about it but serverless sounds pretty dope. That's why next we will setup a serverless platform on top of our k3d. For this let's choose Knative(opens in a new tab) as it's the solution Google Cloud Run(opens in a new tab) is based on and seems to be a competent option compared to other open-source options we have available. It also keeps us in the theme of platforms for platforms as it could be used to create your own serverless platform.
+
+Knative has its own community-backed runtime contract(opens in a new tab). It describes what kind of features an application must and should have to run correctly on the platform. An essential requirement is that the app itself must be stateless and configurable with environmental variables. This kind of open-source specification helps a project gain wider adoption. For instance, Google Cloud Run implemented(opens in a new tab) the same contract.

@@ -1,0 +1,9 @@
+One more thing... init containers and sidecars
+Under the hood, many service mesh implementations rely heavily on init containers(opens in a new tab) and sidecar containers(opens in a new tab) to do their magic. For Istio, the sidecar-based architecture used to be the only choice before the ambient mode, which we used in previous exercises, was introduced. Although the sidecars are no longer the only option for implementing a service mesh, they remain a useful concept that has many uses. So let us now have a closer look at these pretty important concepts.
+
+A pod can have any number of init containers(opens in a new tab) which are containers that run before the containers of the pod start. There are many uses for init containers. Those can, eg.
+
+generate or modify configuration files, fetch data or configuration settings from remote sources, or perform any necessary pre-processing before the main application starts
+wait for other services, databases, or infrastructure components to be up and operational before the application starts. This ensures the main containers only start when all dependencies are ready
+install or set up utilities, toolchains, or software that are required by the main application at runtime but not included in the main application image, keeping the main container image lean and optimized
+Sidecar(opens in a new tab) are the secondary containers that run along with the main application container within the same Pod. These containers are used to enhance or to extend the functionality of the primary app container by providing additional services, or functionality such as logging, monitoring, security, or data synchronization, without directly altering the primary application code.

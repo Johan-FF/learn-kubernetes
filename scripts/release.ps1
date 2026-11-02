@@ -58,8 +58,9 @@ if (-not $SkipDeploy) {
 if (-not $SkipCommit) {
   Write-Host "== committing and tagging $Exercise" -ForegroundColor Cyan
   if (-not $Paths) { $Paths = "$App,README.md" }
-  $pathList = $Paths -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-  git add -- @pathList
+  $pathList = @($Paths -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+  Write-Host "   paths: $($pathList -join ' ')"
+  foreach ($p in $pathList) { git add -- $p }
   git commit -m $Message
   if ($LASTEXITCODE -ne 0) { throw "git commit failed" }
 
