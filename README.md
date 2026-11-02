@@ -73,3 +73,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 4.2 | The project, step 21 | `todo_app/`, `todo_backend/` | [4.2](https://github.com/Johan-FF/learn-kubernetes/tree/4.2/todo_app) |
 | 4.5 | The project, step 22 | `todo_app/`, `todo_backend/` | [4.5](https://github.com/Johan-FF/learn-kubernetes/tree/4.5/todo_app) |
 | 4.6 | The project, step 23 | `broadcaster/`, `todo_backend/` | [4.6](https://github.com/Johan-FF/learn-kubernetes/tree/4.6/broadcaster) |
+| 2.10 | The project, step 13 | `todo_backend/`, `infra/monitoring/` | [2.10](https://github.com/Johan-FF/learn-kubernetes/tree/2.10/todo_backend) |
