@@ -14,6 +14,7 @@ const required = (name) => {
 };
 
 const PORT = Number(required('PORT'));
+const MAX_TODO_LENGTH = Number(required('MAX_TODO_LENGTH'));
 
 const pool = new Pool({
   host: required('PG_HOST'),
@@ -22,6 +23,11 @@ const pool = new Pool({
   password: required('PG_PASSWORD'),
   database: required('PG_DATABASE'),
   max: 5,
+});
+
+// An idle client error (for example while the database restarts) must not take the process down.
+pool.on('error', (error) => {
+  console.error(`idle database client error: ${error.message}`);
 });
 
 const sendJson = (res, status, payload) => {
@@ -90,7 +96,14 @@ const waitForDatabase = async () => {
 };
 
 const server = http.createServer(async (req, res) => {
+  const started = Date.now();
   const url = new URL(req.url, `http://${req.headers.host}`);
+
+  res.on('finish', () => {
+    console.log(
+      `${req.method} ${url.pathname} -> ${res.statusCode} (${Date.now() - started}ms) from ${req.socket.remoteAddress}`,
+    );
+  });
 
   if (req.method === 'GET' && url.pathname === '/todos') {
     try {
@@ -117,6 +130,14 @@ const server = http.createServer(async (req, res) => {
     text = (text || '').trim();
     if (text === '') {
       sendJson(res, 400, { error: 'todo text is required' });
+      return;
+    }
+
+    if (text.length > MAX_TODO_LENGTH) {
+      console.warn(
+        `rejected todo: ${text.length} characters, limit is ${MAX_TODO_LENGTH}: ${JSON.stringify(text)}`,
+      );
+      sendJson(res, 400, { error: `todo text must be at most ${MAX_TODO_LENGTH} characters` });
       return;
     }
 

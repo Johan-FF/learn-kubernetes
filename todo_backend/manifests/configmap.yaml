@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: project
+  name: todo-backend-config
+data:
+  MAX_TODO_LENGTH: "140"

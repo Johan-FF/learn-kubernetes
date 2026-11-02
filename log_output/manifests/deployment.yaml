@@ -39,7 +39,7 @@ spec:
             limits:
               memory: 128Mi
         - name: reader
-          image: log-output-reader:2.5
+          image: log-output-reader:4.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -62,6 +62,12 @@ spec:
               mountPath: /usr/src/app/files
             - name: config
               mountPath: /usr/src/app/config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
           resources:
             requests:
               cpu: 10m

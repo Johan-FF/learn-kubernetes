@@ -24,6 +24,11 @@ const pool = new Pool({
   max: 2,
 });
 
+// An idle client error (for example while the database restarts) must not take the process down.
+pool.on('error', (error) => {
+  console.error(`idle database client error: ${error.message}`);
+});
+
 const initialise = async () => {
   await pool.query(
     'CREATE TABLE IF NOT EXISTS pongs (id integer PRIMARY KEY, value integer NOT NULL)',
@@ -47,6 +52,20 @@ const waitForDatabase = async () => {
 };
 
 const server = http.createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/health') {
+    try {
+      await pool.query('SELECT 1');
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('ok\n');
+    } catch (error) {
+      console.error(`readiness check failed: ${error.message}`);
+      res.writeHead(503, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('database unavailable\n');
+    }
+
+    return;
+  }
+
   if (req.method !== 'GET') {
     res.writeHead(405, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Method not allowed\n');

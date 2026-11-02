@@ -46,6 +46,19 @@ const pingCount = async () => {
 };
 
 const server = http.createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/health') {
+    const pongs = await pingCount();
+    if (pongs === 'unavailable') {
+      res.writeHead(503, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('ping-pong unavailable\n');
+      return;
+    }
+
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('ok\n');
+    return;
+  }
+
   const pongs = await pingCount();
   res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
   res.end(

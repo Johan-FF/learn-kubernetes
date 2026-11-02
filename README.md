@@ -69,3 +69,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 2.7 | Stateful applications | `ping_pong/`, `postgres/` | [2.7](https://github.com/Johan-FF/learn-kubernetes/tree/2.7/ping_pong) |
 | 2.8 | The project, step 11 | `todo_backend/`, `postgres/` | [2.8](https://github.com/Johan-FF/learn-kubernetes/tree/2.8/todo_backend) |
 | 2.9 | The project, step 12 | `todo_generator/` | [2.9](https://github.com/Johan-FF/learn-kubernetes/tree/2.9/todo_generator) |
+| 4.1 | Readiness probe | `log_output/`, `ping_pong/` | [4.1](https://github.com/Johan-FF/learn-kubernetes/tree/4.1/log_output) |
