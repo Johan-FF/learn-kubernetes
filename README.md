@@ -72,3 +72,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 4.1 | Readiness probe | `log_output/`, `ping_pong/` | [4.1](https://github.com/Johan-FF/learn-kubernetes/tree/4.1/log_output) |
 | 4.2 | The project, step 21 | `todo_app/`, `todo_backend/` | [4.2](https://github.com/Johan-FF/learn-kubernetes/tree/4.2/todo_app) |
 | 4.5 | The project, step 22 | `todo_app/`, `todo_backend/` | [4.5](https://github.com/Johan-FF/learn-kubernetes/tree/4.5/todo_app) |
+| 4.6 | The project, step 23 | `broadcaster/`, `todo_backend/` | [4.6](https://github.com/Johan-FF/learn-kubernetes/tree/4.6/broadcaster) |

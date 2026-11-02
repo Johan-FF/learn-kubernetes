@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: project
+  name: broadcaster-dep
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: broadcaster
+  template:
+    metadata:
+      labels:
+        app: broadcaster
+    spec:
+      containers:
+        - name: broadcaster
+          image: broadcaster:4.6
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NATS_URL
+              value: nats://my-nats.nats.svc.cluster.local:4222
+            - name: NATS_SUBJECT
+              value: todos.events
+            - name: NATS_QUEUE_GROUP
+              value: broadcasters
+            - name: WEBHOOK_URL
+              value: http://webhook-sink-svc:2345/messages
+            - name: WEBHOOK_USER
+              value: bot
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi

@@ -1,0 +1,13 @@
+{
+  "name": "broadcaster",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Subscribes to NATS todo events and forwards them to an external service",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "nats": "^2.29.3"
+  }
+}

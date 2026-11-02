@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: project
+  name: webhook-sink-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: webhook-sink
+  ports:
+    - protocol: TCP
+      port: 2345
+      targetPort: 3000

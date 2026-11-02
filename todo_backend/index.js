@@ -1,6 +1,7 @@
 'use strict';
 
 const http = require('http');
+const { connect, StringCodec } = require('nats');
 const { Pool } = require('pg');
 
 const required = (name) => {
@@ -29,6 +30,36 @@ const pool = new Pool({
 pool.on('error', (error) => {
   console.error(`idle database client error: ${error.message}`);
 });
+
+const NATS_URL = required('NATS_URL');
+const NATS_SUBJECT = required('NATS_SUBJECT');
+const codec = StringCodec();
+
+let nats = null;
+
+const connectNats = async () => {
+  for (;;) {
+    try {
+      nats = await connect({ servers: NATS_URL });
+      console.log(`connected to NATS at ${NATS_URL}`);
+      return;
+    } catch (error) {
+      console.error(`NATS not ready: ${error.message}`);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+};
+
+// Publishing is best effort: a missing message is acceptable, a failing request is not.
+const publish = (message) => {
+  try {
+    if (nats && !nats.isClosed()) {
+      nats.publish(NATS_SUBJECT, codec.encode(JSON.stringify({ message })));
+    }
+  } catch (error) {
+    console.error(`could not publish to NATS: ${error.message}`);
+  }
+};
 
 const sendJson = (res, status, payload) => {
   const body = JSON.stringify(payload);
@@ -134,6 +165,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       sendJson(res, 200, rows[0]);
+      publish(`A todo was updated: ${rows[0].text} (done=${rows[0].done})`);
     } catch (error) {
       console.error(`could not update todo: ${error.message}`);
       sendJson(res, 503, { error: 'database unavailable' });
@@ -172,6 +204,7 @@ const server = http.createServer(async (req, res) => {
         [text],
       );
       sendJson(res, 201, rows[0]);
+      publish(`A todo was created: ${rows[0].text}`);
     } catch (error) {
       console.error(`could not save todo: ${error.message}`);
       sendJson(res, 503, { error: 'database unavailable' });
@@ -198,4 +231,5 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`Server started in port ${PORT}`);
   waitForDatabase();
+  connectNats();
 });
