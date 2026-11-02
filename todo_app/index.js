@@ -59,6 +59,8 @@ const currentImage = async () => {
   return fresh || readCachedImage();
 };
 
+const todos = ['Learn Kubernetes basics', 'Build the todo application', 'Cache the random image'];
+
 const page = (imageState) => `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -68,6 +70,13 @@ const page = (imageState) => `<!DOCTYPE html>
   <body>
     <h1>Todo app</h1>
     ${imageState}
+    <form action="/todo/todos" method="post">
+      <input type="text" name="todo" maxlength="140" placeholder="What needs to be done?" />
+      <button type="submit">Send</button>
+    </form>
+    <ul>
+      ${todos.map((todo) => `<li>${todo}</li>`).join('\n      ')}
+    </ul>
   </body>
 </html>
 `;
@@ -93,6 +102,13 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url === '/') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(page('<img src="/todo/image" alt="Random image" width="480" />'));
+    return;
+  }
+
+  if (req.method === 'POST' && url === '/todos') {
+    // Creating todos against the backend arrives in a later exercise.
+    res.writeHead(202, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Todo creation is not implemented yet\n');
     return;
   }
 
