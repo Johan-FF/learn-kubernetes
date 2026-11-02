@@ -69,6 +69,7 @@ const initialise = async () => {
       text text NOT NULL
     )
   `);
+  await pool.query('ALTER TABLE todos ADD COLUMN IF NOT EXISTS done boolean NOT NULL DEFAULT false');
 };
 
 let schemaReady = false;
@@ -108,10 +109,33 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/todos') {
     try {
       await ensureSchema();
-      const { rows } = await pool.query('SELECT id, text FROM todos ORDER BY id');
+      const { rows } = await pool.query('SELECT id, text, done FROM todos ORDER BY id');
       sendJson(res, 200, rows);
     } catch (error) {
       console.error(`could not read todos: ${error.message}`);
+      sendJson(res, 503, { error: 'database unavailable' });
+    }
+
+    return;
+  }
+
+  const todoIdMatch = url.pathname.match(/^\/todos\/(\d+)$/);
+  if (req.method === 'PUT' && todoIdMatch) {
+    try {
+      await ensureSchema();
+      const { rows } = await pool.query(
+        'UPDATE todos SET done = NOT done WHERE id = $1 RETURNING id, text, done',
+        [Number(todoIdMatch[1])],
+      );
+
+      if (rows.length === 0) {
+        sendJson(res, 404, { error: 'todo not found' });
+        return;
+      }
+
+      sendJson(res, 200, rows[0]);
+    } catch (error) {
+      console.error(`could not update todo: ${error.message}`);
       sendJson(res, 503, { error: 'database unavailable' });
     }
 
@@ -144,7 +168,7 @@ const server = http.createServer(async (req, res) => {
     try {
       await ensureSchema();
       const { rows } = await pool.query(
-        'INSERT INTO todos (text) VALUES ($1) RETURNING id, text',
+        'INSERT INTO todos (text) VALUES ($1) RETURNING id, text, done',
         [text],
       );
       sendJson(res, 201, rows[0]);

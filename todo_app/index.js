@@ -116,7 +116,16 @@ const todoList = (todos) => {
   }
 
   return `<ul>
-      ${todos.map((todo) => `<li>${escapeHtml(todo.text)}</li>`).join('\n      ')}
+      ${todos
+        .map(
+          (todo) => `<li class="${todo.done ? 'done' : ''}">
+        <form action="${PUBLIC_PATH}/todos/${todo.id}/toggle" method="post">
+          <button type="submit">${todo.done ? 'Undo' : 'Done'}</button>
+        </form>
+        <span>${escapeHtml(todo.text)}</span>
+      </li>`,
+        )
+        .join('\n      ')}
     </ul>`;
 };
 
@@ -209,6 +218,24 @@ const server = http.createServer(async (req, res) => {
     const todos = await fetchTodos();
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(page(todos));
+    return;
+  }
+
+  const toggleMatch = url.match(/^\/todos\/(\d+)\/toggle$/);
+  if (req.method === 'POST' && toggleMatch) {
+    try {
+      const response = await fetch(`${BACKEND_URL}/todos/${toggleMatch[1]}`, { method: 'PUT' });
+      if (!response.ok) {
+        throw new Error(`backend responded ${response.status}`);
+      }
+    } catch (error) {
+      res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end(`Could not toggle the todo: ${error.message}\n`);
+      return;
+    }
+
+    res.writeHead(302, { Location: PUBLIC_PATH });
+    res.end();
     return;
   }
 
