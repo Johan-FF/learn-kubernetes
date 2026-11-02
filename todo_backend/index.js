@@ -2,7 +2,11 @@
 
 const http = require('http');
 
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT);
+if (!PORT) {
+  console.error('missing required environment variable PORT');
+  process.exit(1);
+}
 
 // Todos are kept in memory until the database exercise.
 let todos = [

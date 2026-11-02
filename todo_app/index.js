@@ -4,14 +4,25 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 
-const PORT = Number(process.env.PORT) || 3000;
-const CACHE_DIR = process.env.CACHE_DIR || '/usr/src/app/cache';
-const BACKEND_URL = process.env.TODO_BACKEND_URL || 'http://todo-backend-svc:2345';
-const PUBLIC_PATH = '/todo';
+const required = (name) => {
+  const value = process.env[name];
+  if (value === undefined || value === '') {
+    console.error(`missing required environment variable ${name}`);
+    process.exit(1);
+  }
+
+  return value;
+};
+
+const PORT = Number(required('PORT'));
+const CACHE_DIR = required('CACHE_DIR');
+const BACKEND_URL = required('TODO_BACKEND_URL');
+const PUBLIC_PATH = required('PUBLIC_PATH');
+const IMAGE_URL = required('IMAGE_URL');
+const IMAGE_MAX_AGE_MS = Number(required('IMAGE_CACHE_MINUTES')) * 60 * 1000;
 
 const IMAGE_FILE = path.join(CACHE_DIR, 'image.jpg');
 const STAMP_FILE = path.join(CACHE_DIR, 'image.timestamp');
-const MAX_AGE_MS = 10 * 60 * 1000;
 
 fs.mkdirSync(CACHE_DIR, { recursive: true });
 
@@ -33,9 +44,9 @@ const cachedImageAge = () => {
 
 const fetchNewImage = async () => {
   try {
-    const response = await fetch('https://picsum.photos/1200');
+    const response = await fetch(IMAGE_URL);
     if (!response.ok) {
-      throw new Error(`picsum responded ${response.status}`);
+      throw new Error(`image service responded ${response.status}`);
     }
 
     const buffer = Buffer.from(await response.arrayBuffer());
@@ -50,8 +61,7 @@ const fetchNewImage = async () => {
 };
 
 const currentImage = async () => {
-  const age = cachedImageAge();
-  if (age < MAX_AGE_MS) {
+  if (cachedImageAge() < IMAGE_MAX_AGE_MS) {
     const cached = readCachedImage();
     if (cached) {
       return cached;
@@ -140,8 +150,8 @@ const readBody = (req) =>
   });
 
 const server = http.createServer(async (req, res) => {
-  // The Ingress publishes the project under /todo so that it can run next to the other
-  // applications of the course on the same Traefik instance.
+  // The Ingress publishes the project under its public path prefix so that it can run next to
+  // the other applications of the course on the same Traefik instance.
   const url = req.url.startsWith(PUBLIC_PATH)
     ? req.url.slice(PUBLIC_PATH.length) || '/'
     : req.url;
