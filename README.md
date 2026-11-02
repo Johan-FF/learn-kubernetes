@@ -61,3 +61,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 1.12 | The project, step 6 | `todo_app/` | [1.12](https://github.com/Johan-FF/learn-kubernetes/tree/1.12/todo_app) |
 | 1.13 | The project, step 7 | `todo_app/` | [1.13](https://github.com/Johan-FF/learn-kubernetes/tree/1.13/todo_app) |
 | 2.1 | Connecting pods | `log_output/`, `ping_pong/` | [2.1](https://github.com/Johan-FF/learn-kubernetes/tree/2.1/log_output) |
+| 2.2 | The project, step 8 | `todo_backend/` | [2.2](https://github.com/Johan-FF/learn-kubernetes/tree/2.2/todo_backend) |
