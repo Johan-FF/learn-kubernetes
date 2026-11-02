@@ -12,9 +12,14 @@ spec:
       labels:
         app: log-output
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k3d-devops-agent-0
       volumes:
         - name: shared-logs
           emptyDir: {}
+        - name: course-data
+          persistentVolumeClaim:
+            claimName: course-data-pvc
       containers:
         - name: writer
           image: log-output-writer:1.10
@@ -32,7 +37,7 @@ spec:
             limits:
               memory: 128Mi
         - name: reader
-          image: log-output-reader:1.10
+          image: log-output-reader:1.11
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -41,9 +46,13 @@ spec:
               value: "3000"
             - name: LOG_FILE
               value: /usr/src/app/files/output.txt
+            - name: PING_FILE
+              value: /usr/src/app/data/pingpong.txt
           volumeMounts:
             - name: shared-logs
               mountPath: /usr/src/app/files
+            - name: course-data
+              mountPath: /usr/src/app/data
           resources:
             requests:
               cpu: 10m
