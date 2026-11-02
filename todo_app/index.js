@@ -21,6 +21,9 @@ const PUBLIC_PATH = required('PUBLIC_PATH');
 const IMAGE_URL = required('IMAGE_URL');
 const IMAGE_MAX_AGE_MS = Number(required('IMAGE_CACHE_MINUTES')) * 60 * 1000;
 
+// Flipped by the /break endpoint of exercise 4.2 so the liveness probe restarts the pod.
+let isHealthy = true;
+
 const IMAGE_FILE = path.join(CACHE_DIR, 'image.jpg');
 const STAMP_FILE = path.join(CACHE_DIR, 'image.timestamp');
 
@@ -117,6 +120,21 @@ const todoList = (todos) => {
     </ul>`;
 };
 
+const healthReport = async () => {
+  if (!isHealthy) {
+    return { status: 500, body: 'unhealthy on purpose' };
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/health`);
+    return response.ok
+      ? { status: 200, body: 'ok' }
+      : { status: 500, body: 'todo backend is not healthy' };
+  } catch (error) {
+    return { status: 500, body: `todo backend is unreachable: ${error.message}` };
+  }
+};
+
 const page = (todos) => `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -131,6 +149,9 @@ const page = (todos) => `<!DOCTYPE html>
       <button type="submit">Send</button>
     </form>
     ${todoList(todos)}
+    <form action="${PUBLIC_PATH}/break" method="post">
+      <button type="submit">Break the app</button>
+    </form>
   </body>
 </html>
 `;
@@ -155,6 +176,21 @@ const server = http.createServer(async (req, res) => {
   const url = req.url.startsWith(PUBLIC_PATH)
     ? req.url.slice(PUBLIC_PATH.length) || '/'
     : req.url;
+
+  if (req.method === 'GET' && url === '/healthz') {
+    const report = await healthReport();
+    res.writeHead(report.status, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end(`${report.body}\n`);
+    return;
+  }
+
+  if (req.method === 'POST' && url === '/break') {
+    isHealthy = false;
+    console.log('health flag flipped to unhealthy by the /break endpoint');
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('The application is unhealthy now, the liveness probe will restart the pod.\n');
+    return;
+  }
 
   if (req.method === 'GET' && url === '/image') {
     const image = await currentImage();

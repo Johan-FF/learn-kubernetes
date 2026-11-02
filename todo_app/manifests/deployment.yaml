@@ -19,7 +19,7 @@ spec:
             claimName: todo-cache-pvc
       containers:
         - name: todo-app
-          image: todo_app:2.6
+          image: todo_app:4.2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -34,6 +34,19 @@ spec:
           volumeMounts:
             - name: image-cache
               mountPath: /usr/src/app/cache
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
           resources:
             requests:
               cpu: 10m

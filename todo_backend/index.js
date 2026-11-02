@@ -157,7 +157,14 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET' && url.pathname === '/health') {
-    sendJson(res, 200, { status: 'ok' });
+    try {
+      await pool.query('SELECT 1');
+      sendJson(res, 200, { status: 'ok' });
+    } catch (error) {
+      console.error(`health check failed: ${error.message}`);
+      sendJson(res, 503, { status: 'database unavailable' });
+    }
+
     return;
   }
 

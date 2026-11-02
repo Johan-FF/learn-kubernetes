@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: todo-backend
-          image: todo_backend:2.10
+          image: todo_backend:4.2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -44,6 +44,12 @@ spec:
                 secretKeyRef:
                   name: todo-postgres-secret
                   key: POSTGRES_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
           resources:
             requests:
               cpu: 10m
