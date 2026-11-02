@@ -1,32 +1,36 @@
 # log_output
 
-Exercise 1.1 application of the DevOps with Kubernetes course.
+"Log output" application of the DevOps with Kubernetes course.
 
-A Node.js process that generates a random UUID once at startup, keeps it in memory and
-prints it with an ISO timestamp every 5 seconds.
+## Layout
 
-## Run locally
+Since exercise 1.10 the application is one pod with two containers:
+
+| Directory | Role |
+| --- | --- |
+| `writer/` | Generates a random UUID at startup and appends `timestamp: hash` to a file every 5 seconds |
+| `reader/` | Serves the content of that file over HTTP |
+
+Both containers mount the same `emptyDir` volume, so the reader always sees what the writer has
+written without the two processes knowing anything about each other.
+
+## Build and load the images into k3d
 
 ```bash
-npm start
-```
-
-## Build and load the image into k3d
-
-```bash
-docker build -t log_output:1.1 .
-k3d image import log_output:1.1 -c devops
+docker build -t log-output-writer:1.10 ./writer
+docker build -t log-output-reader:1.10 ./reader
+k3d image import log-output-writer:1.10 log-output-reader:1.10 -c devops --mode direct
 ```
 
 ## Deploy
 
 ```bash
-kubectl apply -f manifests/deployment.yaml
+kubectl apply -f manifests
 kubectl rollout status deployment/log-output-dep
-kubectl logs -f deployment/log-output-dep
+curl http://127.0.0.1:8081/
 ```
 
-The image tag is declared in `manifests/deployment.yaml`; update it when a later exercise
+The image tags are declared in `manifests/deployment.yaml`; update them when a later exercise
 changes the output so the cluster picks up the new build.
 
 ## Declarative deployment (exercise 1.3)

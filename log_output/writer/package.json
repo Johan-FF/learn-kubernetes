@@ -1,0 +1,10 @@
+{
+  "name": "log-output-writer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Writes a timestamped startup hash into the shared log file",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
