@@ -12,26 +12,15 @@ spec:
       labels:
         app: ping-pong
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: k3d-devops-agent-0
-      volumes:
-        - name: course-data
-          persistentVolumeClaim:
-            claimName: course-data-pvc
       containers:
         - name: ping-pong
-          image: ping_pong:1.11
+          image: ping_pong:2.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           env:
             - name: PORT
               value: "3000"
-            - name: PING_FILE
-              value: /usr/src/app/data/pingpong.txt
-          volumeMounts:
-            - name: course-data
-              mountPath: /usr/src/app/data
           resources:
             requests:
               cpu: 10m

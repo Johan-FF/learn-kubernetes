@@ -5,7 +5,7 @@ const http = require('http');
 
 const PORT = Number(process.env.PORT) || 3000;
 const LOG_FILE = process.env.LOG_FILE || '/usr/src/app/files/output.txt';
-const PING_FILE = process.env.PING_FILE || '/usr/src/app/data/pingpong.txt';
+const PING_URL = process.env.PING_URL || 'http://ping-pong-svc:2345/pingpong';
 
 const lastLogLine = () => {
   try {
@@ -20,20 +20,27 @@ const lastLogLine = () => {
   }
 };
 
-const pingCount = () => {
+const pingCount = async () => {
   try {
-    const stored = Number(fs.readFileSync(PING_FILE, 'utf8').trim());
-    return Number.isFinite(stored) ? stored : 0;
+    const response = await fetch(PING_URL);
+    if (!response.ok) {
+      return 'unavailable';
+    }
+
+    const body = (await response.text()).trim();
+    const match = body.match(/pong (\d+)/);
+    return match ? match[1] : 'unavailable';
   } catch {
-    return 0;
+    return 'unavailable';
   }
 };
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
+  const pongs = await pingCount();
   res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-  res.end(`${lastLogLine()}\nPing / Pongs: ${pingCount()}\n`);
+  res.end(`${lastLogLine()}\nPing / Pongs: ${pongs}\n`);
 });
 
 server.listen(PORT, () => {
-  console.log(`Server started in port ${PORT}`);
+  console.log(`Server started in port ${PORT}, asking ${PING_URL}`);
 });
