@@ -107,3 +107,4 @@ The pipeline in this repository ends by pushing images tagged with the commit SH
 version means updating that tag in the configuration repository, which is what ArgoCD watches.
 Application code and cluster state now change independently, and neither repository needs write
 access to the other.
+| 5.2 | Istio service mesh | `istio/` | [5.2](https://github.com/Johan-FF/learn-kubernetes/tree/5.2/istio) |

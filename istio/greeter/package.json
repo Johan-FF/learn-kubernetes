@@ -1,0 +1,10 @@
+{
+  "name": "greeter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Greeter service used by the service mesh exercise",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
