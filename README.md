@@ -82,3 +82,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 3.5 | The project, step 14 | `project/` | [3.5](https://github.com/Johan-FF/learn-kubernetes/tree/3.5/project) |
 | 3.6 | The project, step 15 | `.github/workflows/` | [3.6](https://github.com/Johan-FF/learn-kubernetes/tree/3.6/.github/workflows) |
 | 3.7 | The project, step 16 | `.github/workflows/deploy.yml` | [3.7](https://github.com/Johan-FF/learn-kubernetes/tree/3.7/.github/workflows) |
+| 3.8 | The project, step 17 | `.github/workflows/cleanup.yml` | [3.8](https://github.com/Johan-FF/learn-kubernetes/tree/3.8/.github/workflows) |
