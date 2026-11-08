@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wikipedia-dep
+  namespace: wikipedia
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wikipedia
+  template:
+    metadata:
+      labels:
+        app: wikipedia
+    spec:
+      volumes:
+        - name: html
+          emptyDir: {}
+      initContainers:
+        # Fetches the page once before the web server starts.
+        - name: fetch-once
+          image: curlimages/curl:8.11.0
+          command:
+            - sh
+            - -c
+            - curl -sSfL https://en.wikipedia.org/wiki/Kubernetes -o /usr/share/nginx/html/index.html
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 20m
+              memory: 48Mi
+            limits:
+              memory: 128Mi
+        # Refreshes the page every 30 seconds while nginx keeps serving the previous copy.
+        - name: refresh
+          image: curlimages/curl:8.11.0
+          command:
+            - sh
+            - -c
+            - while true; do curl -sSfL https://en.wikipedia.org/wiki/Kubernetes -o /usr/share/nginx/html/index.html || echo "refresh failed"; sleep 30; done
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wikipedia-svc
+  namespace: wikipedia
+spec:
+  type: ClusterIP
+  selector:
+    app: wikipedia
+  ports:
+    - protocol: TCP
+      port: 2345
+      targetPort: 80

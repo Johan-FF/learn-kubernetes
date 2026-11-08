@@ -88,3 +88,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 3.11 | The project, step 19 | `project/resources.md` | [3.11](https://github.com/Johan-FF/learn-kubernetes/tree/3.11/project) |
 | 3.12 | The project, step 20 | `project/logs/` | [3.12](https://github.com/Johan-FF/learn-kubernetes/tree/3.12/project) |
 | 5.1 | DIY CRD & Controller | `dummysite/` | [5.1](https://github.com/Johan-FF/learn-kubernetes/tree/5.1/dummysite) |
+| 5.4 | Wikipedia with init and sidecar | `wikipedia/` | [5.4](https://github.com/Johan-FF/learn-kubernetes/tree/5.4/wikipedia) |
