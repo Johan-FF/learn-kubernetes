@@ -1,0 +1,53 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Local (k3d) flavour of the project, used by ArgoCD in exercises 4.8 and 4.9.
+# The Gateway resource of the base is removed because the local cluster has no Gateway API
+# controller installed.
+resources:
+  - ../../base
+
+namespace: project
+
+images:
+  - name: todo-app
+    newName: todo-app
+    newTag: "4.8"
+  - name: todo-backend
+    newName: todo-backend
+    newTag: "4.8"
+  - name: todo-generator
+    newName: todo-generator
+    newTag: "4.8"
+
+patches:
+  - target:
+      kind: Gateway
+    patch: |
+      $patch: delete
+      apiVersion: gateway.networking.k8s.io/v1
+      kind: Gateway
+      metadata:
+        name: project-gateway
+  - target:
+      kind: HTTPRoute
+    patch: |
+      $patch: delete
+      apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: project-route
+  - target:
+      kind: Service
+      name: todo-app-svc
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: NodePort
+  - target:
+      kind: PersistentVolumeClaim
+      name: todo-cache-pvc
+    patch: |-
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 200Mi
