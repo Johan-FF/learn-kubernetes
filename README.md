@@ -77,3 +77,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 4.3 | Prometheus | `infra/monitoring/` | [4.3](https://github.com/Johan-FF/learn-kubernetes/tree/4.3/infra/monitoring) |
 | 3.1 | Pingpong GKE | `gke/3.1/` | [3.1](https://github.com/Johan-FF/learn-kubernetes/tree/3.1/gke/3.1) |
 | 3.2 | Back to Ingress | `gke/3.2/` | [3.2](https://github.com/Johan-FF/learn-kubernetes/tree/3.2/gke/3.2) |
+| 3.3 | To the Gateway | `gke/3.3/` | [3.3](https://github.com/Johan-FF/learn-kubernetes/tree/3.3/gke/3.3) |
