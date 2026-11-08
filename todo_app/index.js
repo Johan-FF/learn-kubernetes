@@ -17,7 +17,8 @@ const required = (name) => {
 const PORT = Number(required('PORT'));
 const CACHE_DIR = required('CACHE_DIR');
 const BACKEND_URL = required('TODO_BACKEND_URL');
-const PUBLIC_PATH = required('PUBLIC_PATH');
+// On GKE the application is served from the root path, so the prefix is optional there.
+const PUBLIC_PATH = (process.env.PUBLIC_PATH || '').replace(/\/$/, '');
 const IMAGE_URL = required('IMAGE_URL');
 const IMAGE_MAX_AGE_MS = Number(required('IMAGE_CACHE_MINUTES')) * 60 * 1000;
 
@@ -182,9 +183,10 @@ const readBody = (req) =>
 const server = http.createServer(async (req, res) => {
   // The Ingress publishes the project under its public path prefix so that it can run next to
   // the other applications of the course on the same Traefik instance.
-  const url = req.url.startsWith(PUBLIC_PATH)
-    ? req.url.slice(PUBLIC_PATH.length) || '/'
-    : req.url;
+  const url =
+    PUBLIC_PATH && req.url.startsWith(PUBLIC_PATH)
+      ? req.url.slice(PUBLIC_PATH.length) || '/'
+      : req.url;
 
   if (req.method === 'GET' && url === '/healthz') {
     const report = await healthReport();

@@ -79,3 +79,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 3.2 | Back to Ingress | `gke/3.2/` | [3.2](https://github.com/Johan-FF/learn-kubernetes/tree/3.2/gke/3.2) |
 | 3.3 | To the Gateway | `gke/3.3/` | [3.3](https://github.com/Johan-FF/learn-kubernetes/tree/3.3/gke/3.3) |
 | 3.4 | Rewritten routing | `gke/3.4/` | [3.4](https://github.com/Johan-FF/learn-kubernetes/tree/3.4/gke/3.4) |
+| 3.5 | The project, step 14 | `project/` | [3.5](https://github.com/Johan-FF/learn-kubernetes/tree/3.5/project) |
