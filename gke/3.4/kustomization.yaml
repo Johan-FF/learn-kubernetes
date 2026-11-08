@@ -5,7 +5,7 @@ kind: Kustomization
 # request reaches the "Ping-pong" application.
 resources:
   - ../base
-  - ../3.3/gateway.yaml
+  - gateway.yaml
   - httproute.yaml
 
 patches:
@@ -23,3 +23,7 @@ patches:
       - op: replace
         path: /spec/type
         value: NodePort
+
+images:
+  - name: europe-north1-docker.pkg.dev/project-74b28d99-70ba-47ca-9bc/dwk/ping-pong
+    newTag: "3.4"

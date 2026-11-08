@@ -52,6 +52,8 @@ const waitForDatabase = async () => {
 };
 
 const server = http.createServer(async (req, res) => {
+  console.log(`${req.method} ${req.url}`);
+
   if (req.method === 'GET' && req.url === '/health') {
     try {
       await pool.query('SELECT 1');
