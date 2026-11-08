@@ -1,0 +1,32 @@
+name: cleanup
+
+on:
+  delete:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  delete-environment:
+    # Only branch deletions create a namespace that has to go away; main lives in "project".
+    if: github.event.ref_type == 'branch' && github.event.ref != 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ vars.GKE_CLUSTER }}
+          location: ${{ vars.GCP_ZONE }}
+
+      - name: Delete the namespace of the deleted branch
+        env:
+          REF: ${{ github.event.ref }}
+        run: |
+          NS=$(printf '%s' "$REF" | tr '[:upper:]_/' '[:lower:]--')
+          echo "deleting namespace $NS"
+          kubectl delete namespace "$NS" --ignore-not-found --timeout=300s
