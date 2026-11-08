@@ -90,3 +90,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 5.1 | DIY CRD & Controller | `dummysite/` | [5.1](https://github.com/Johan-FF/learn-kubernetes/tree/5.1/dummysite) |
 | 5.4 | Wikipedia with init and sidecar | `wikipedia/` | [5.4](https://github.com/Johan-FF/learn-kubernetes/tree/5.4/wikipedia) |
 | 5.5 | Platform comparison | `platform-comparison/` | [5.5](https://github.com/Johan-FF/learn-kubernetes/tree/5.5/platform-comparison) |
+| 4.7 | Baby steps to GitOps | `argocd/` | [4.7](https://github.com/Johan-FF/learn-kubernetes/tree/4.7/argocd) |
