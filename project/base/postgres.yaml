@@ -49,9 +49,10 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 128Mi
+              memory: 96Mi
             limits:
-              memory: 512Mi
+              cpu: 200m
+              memory: 256Mi
           readinessProbe:
             exec:
               command:
