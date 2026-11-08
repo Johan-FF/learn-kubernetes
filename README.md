@@ -112,3 +112,26 @@ access to the other.
 | 5.6 | Trying serverless | `knative/hello.yaml` | [5.6](https://github.com/Johan-FF/learn-kubernetes/tree/5.6/knative) |
 | 5.7 | Deploy to serverless | `knative/pingpong.yaml` | [5.7](https://github.com/Johan-FF/learn-kubernetes/tree/5.7/knative/pingpong.yaml) |
 | 5.8 | Landscape | `landscape/` | [5.8](https://github.com/Johan-FF/learn-kubernetes/tree/5.8/landscape) |
+
+## Submission
+
+Repository: <https://github.com/Johan-FF/learn-kubernetes>
+
+Every exercise of the course is a release with the exercise number as its tag, and the table above
+links each one to the application directory at that exact release. The configuration lives in
+<https://github.com/Johan-FF/learn-kubernetes-config> since exercise 4.10.
+
+The repository is public, so it is already accessible for the reviewer account.
+
+### Installation of the local environment
+
+```bash
+k3d cluster create devops -a 1 -p 8081:80@loadbalancer -p 8082:30080@agent:0 \
+  --image rancher/k3s:v1.34.1-k3s1 \
+  --k3s-arg "--disable=metrics-server@server:0" \
+  --k3s-arg "--disable=traefik@server:0"
+```
+
+k3s 1.34 is pinned because the Docker engine on this machine runs cgroup v1, and Traefik is
+disabled because the Knative exercises require it.
+| 5.9 | The end | this README | [5.9](https://github.com/Johan-FF/learn-kubernetes/tree/5.9) |
