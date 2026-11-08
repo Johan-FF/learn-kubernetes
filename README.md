@@ -110,3 +110,4 @@ access to the other.
 | 5.2 | Istio service mesh | `istio/` | [5.2](https://github.com/Johan-FF/learn-kubernetes/tree/5.2/istio) |
 | 5.3 | Log app, the Service Mesh Edition | `istio/greeter/` | [5.3](https://github.com/Johan-FF/learn-kubernetes/tree/5.3/istio/greeter) |
 | 5.6 | Trying serverless | `knative/hello.yaml` | [5.6](https://github.com/Johan-FF/learn-kubernetes/tree/5.6/knative) |
+| 5.7 | Deploy to serverless | `knative/pingpong.yaml` | [5.7](https://github.com/Johan-FF/learn-kubernetes/tree/5.7/knative/pingpong.yaml) |

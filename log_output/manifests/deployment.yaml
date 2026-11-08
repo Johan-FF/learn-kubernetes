@@ -49,7 +49,7 @@ spec:
             - name: LOG_FILE
               value: /usr/src/app/files/output.txt
             - name: PING_URL
-              value: http://ping-pong-svc:2345/pingpong
+              value: http://pingpong.exercises.svc.cluster.local
             - name: GREETER_URL
               value: http://greeter-svc:2345/
             - name: INFORMATION_FILE
