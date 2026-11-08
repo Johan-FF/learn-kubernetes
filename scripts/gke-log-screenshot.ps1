@@ -7,19 +7,18 @@
   This script reads the real log entries through `gcloud logging read` and renders them into an
   image so the repository holds a durable artefact instead of a screenshot of a console tab.
 
-  Filtering by the message is done locally: passing a filter with spaces through PowerShell to
-  gcloud is unreliable, so the API filter only narrows by resource and the text match happens
-  here.
+  The output uses gcloud's tab separated `value()` format and the text match happens here,
+  because passing filters with spaces through PowerShell to gcloud is unreliable.
 
 .EXAMPLE
-  .\scripts\gke-log-screenshot.ps1 -Output "project/logs/todo-created.png"
+  .\scripts\gke-log-screenshot.ps1 -Filter "created todo" -Output "project/logs/todo-created.png"
 #>
 [CmdletBinding()]
 param(
   [string]$ProjectId = 'project-74b28d99-70ba-47ca-9bc',
   [string]$Namespace = 'project',
   [string]$Container = 'todo-backend',
-  [string]$Filter = 'A todo was created',
+  [string]$Filter = 'created todo',
   [int]$Limit = 10,
   [string]$Output = 'project/logs/todo-created.png'
 )
@@ -32,15 +31,25 @@ $Output = Join-Path $root $Output
 $query = "resource.labels.namespace_name=`"$Namespace`" AND resource.labels.container_name=`"$Container`""
 
 Write-Host "== reading logs from Cloud Logging" -ForegroundColor Cyan
-$raw = gcloud logging read $query --project $ProjectId --limit 400 --format=json 2>&1 | Out-String
-$entries = $raw | ConvertFrom-Json | Where-Object { $_.textPayload -like "*$Filter*" } | Select-Object -First $Limit
+$raw = gcloud logging read $query --project $ProjectId --limit 400 --format="value(timestamp,textPayload)" 2>&1
 
-if (-not $entries) { throw "no log entries contained '$Filter'" }
+$lines = New-Object System.Collections.Generic.List[string]
+foreach ($line in $raw) {
+  if ($null -eq $line) { continue }
+  $line = $line.ToString().Trim()
+  if ($line -eq '') { continue }
+  if ($line -notlike "*$Filter*") { continue }
 
-$lines = foreach ($e in $entries) {
-  $ts = ([datetime]$e.timestamp).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss')
-  "$ts  $($e.textPayload)"
+  $parts = $line -split "`t", 2
+  $stamp = $parts[0]
+  $message = if ($parts.Count -gt 1) { $parts[1] } else { '' }
+  if ($stamp.Length -ge 19) { $stamp = ($stamp -replace 'T', ' ').Substring(0, 19) }
+  $lines.Add("$stamp  $message")
+  if ($lines.Count -ge $Limit) { break }
 }
+
+if ($lines.Count -eq 0) { throw "no log entries contained '$Filter'" }
+Write-Host "   keeping $($lines.Count) entries" -ForegroundColor Cyan
 
 Add-Type -AssemblyName System.Drawing
 
@@ -66,8 +75,8 @@ $titleFont = New-Object System.Drawing.Font('Segoe UI', 15, [System.Drawing.Font
 $smallFont = New-Object System.Drawing.Font('Segoe UI', 9)
 $monoFont = New-Object System.Drawing.Font('Consolas', 10)
 
-$graphics.DrawString('Logs Explorer  —  GKE', $titleFont, $text, 20, 12)
-$graphics.DrawString("cluster dwk-cluster · namespace $Namespace · container $Container", $smallFont, $muted, 20, 44)
+$graphics.DrawString('Logs Explorer  -  GKE', $titleFont, $text, 20, 12)
+$graphics.DrawString("cluster dwk-cluster - namespace $Namespace - container $Container", $smallFont, $muted, 20, 44)
 $graphics.DrawString("match: $Filter", $smallFont, $accent, 700, 44)
 
 $y = $headerHeight + 14

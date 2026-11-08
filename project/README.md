@@ -21,7 +21,6 @@ after the branch, and `.github/workflows/cleanup.yml` removes that namespace whe
 deleted.
 
 ## 3.9 DBaaS vs DIY: PostgreSQL on Cloud SQL versus PostgreSQL in the cluster
-
 The two solutions we compared are the self-hosted PostgreSQL that the project runs today (a
 StatefulSet with a `volumeClaimTemplate`) and Cloud SQL for PostgreSQL.
 
@@ -66,3 +65,41 @@ rest of the application and it makes the deployment pipeline self-contained. In 
 system with real data the trade flips: backups, point-in-time recovery and failover are precisely
 the parts nobody wants to write by hand, and Cloud SQL costs less than the engineering time of
 maintaining them.
+
+## 3.12 Finding the project logs in GKE
+
+GKE ships container stdout and stderr to Cloud Logging automatically, so no agent has to be
+installed. The backend writes one line per created todo:
+
+```
+created todo 8: Ship the project
+```
+
+### From the console
+
+1. Kubernetes Engine -> Workloads -> `project` namespace -> `todo-backend-dep`.
+2. Open the **Logs** tab of the workload. It runs the query below for you.
+3. Or open **Logging -> Logs Explorer** and paste the query.
+
+### Query
+
+```
+resource.type="k8s_container"
+resource.labels.namespace_name="project"
+resource.labels.container_name="todo-backend"
+textPayload:"created todo"
+```
+
+### From the command line
+
+```bash
+gcloud logging read 'resource.type="k8s_container" AND resource.labels.namespace_name="project" AND resource.labels.container_name="todo-backend" AND textPayload:"created todo"' \
+  --limit 10 --format="value(timestamp,textPayload)"
+```
+
+### Captured evidence
+
+`logs/todo-created.png` is rendered from the real Cloud Logging entries by
+`scripts/gke-log-screenshot.ps1`, and `logs/todo-created.log` holds the same lines as text:
+
+![Logs when a todo is created](logs/todo-created.png)

@@ -86,3 +86,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 3.9 | DBaaS vs DIY | `project/README.md` | [3.9](https://github.com/Johan-FF/learn-kubernetes/tree/3.9/project) |
 | 3.10 | The project, step 18 | `backup/`, `project/` | [3.10](https://github.com/Johan-FF/learn-kubernetes/tree/3.10/backup) |
 | 3.11 | The project, step 19 | `project/resources.md` | [3.11](https://github.com/Johan-FF/learn-kubernetes/tree/3.11/project) |
+| 3.12 | The project, step 20 | `project/logs/` | [3.12](https://github.com/Johan-FF/learn-kubernetes/tree/3.12/project) |
