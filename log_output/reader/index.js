@@ -52,7 +52,9 @@ const greeting = async () => {
   }
 
   try {
-    const response = await fetch(GREETER_URL);
+    // A fresh connection per call keeps the load balancing visible: an idle keep-alive
+    // connection would pin every greeting to the same greeter version.
+    const response = await fetch(GREETER_URL, { headers: { Connection: 'close' } });
     if (!response.ok) {
       return `unavailable (${response.status})`;
     }

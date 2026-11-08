@@ -108,3 +108,4 @@ version means updating that tag in the configuration repository, which is what A
 Application code and cluster state now change independently, and neither repository needs write
 access to the other.
 | 5.2 | Istio service mesh | `istio/` | [5.2](https://github.com/Johan-FF/learn-kubernetes/tree/5.2/istio) |
+| 5.3 | Log app, the Service Mesh Edition | `istio/greeter/` | [5.3](https://github.com/Johan-FF/learn-kubernetes/tree/5.3/istio/greeter) |

@@ -82,10 +82,28 @@ Greetings: hello from v1
 
 ```bash
 kubectl label namespace exercises istio.io/dataplane-mode=ambient
+istioctl waypoint apply -n exercises --name greeter-waypoint --for service
+kubectl label service greeter-svc -n exercises istio.io/use-waypoint=greeter-waypoint
 kubectl apply -f greeter/manifests/
 kubectl apply -f log-output/deployment.yaml
 kubectl -n exercises port-forward deployment/log-output-dep 8094:3000
 ```
 
-The split is visible in Kiali's graph for the `greeter-svc` node, and by repeating requests to
-`/` and counting the `hello from v1` / `hello from v2` lines.
+### What was verified, and what was not
+
+Verified:
+
+- The two greeter versions answer with `hello from v1` and `hello from v2`.
+- The "Log output" reader shows the greeting in its output (`Greetings: hello from v1`).
+- The `HTTPRoute` is accepted by the gateway controller
+  (`Accepted / ResolvedRefs / ResolvedWaypoints`), `istioctl ztunnel-config services` maps
+  `greeter-svc` to `greeter-waypoint`, and the namespace-wide waypoint was replaced with a
+  service-scoped one so the rest of the namespace is unaffected.
+
+Not verified: the observed split. Over 100 requests the distribution came out at 51/49 instead of
+75/25. The route is accepted and `ztunnel` reports the waypoint for `greeter-svc`, but part of the
+traffic still appears to be balanced at L4 directly between the two endpoints of `greeter-svc`.
+The same manifests are the pattern the course material describes (service as `parentRefs`, weights
+in `backendRefs`), so this is recorded as an environment limitation rather than a design choice.
+The two versions and the weighted route are in place for Kiali to display.
+
