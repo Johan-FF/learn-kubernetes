@@ -3,7 +3,7 @@ name: deploy
 on:
   push:
     branches:
-      - main
+      - "**"
     paths:
       - "todo_app/**"
       - "todo_backend/**"
@@ -56,9 +56,21 @@ jobs:
           curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
           sudo mv kustomize /usr/local/bin/
 
-      - name: Point the overlay at the built images
+      - name: Choose the environment namespace
+        id: env
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            NS=project
+          else
+            NS=$(printf '%s' "$GITHUB_REF_NAME" | tr '[:upper:]_/' '[:lower:]--')
+          fi
+          echo "namespace=$NS" >> "$GITHUB_OUTPUT"
+          echo "deploying to namespace $NS"
+
+      - name: Point the overlay at the environment and the built images
         working-directory: project/overlays/gke
         run: |
+          kustomize edit set namespace "${{ steps.env.outputs.namespace }}"
           kustomize edit set image "todo-app=$REGISTRY/todo-app:$TAG"
           kustomize edit set image "todo-backend=$REGISTRY/todo-backend:$TAG"
           kustomize edit set image "todo-generator=$REGISTRY/todo-generator:$TAG"
@@ -68,5 +80,6 @@ jobs:
 
       - name: Wait for the rollout
         run: |
-          kubectl rollout status deployment/todo-app-dep -n project --timeout=300s
-          kubectl rollout status deployment/todo-backend-dep -n project --timeout=300s
+          NS="${{ steps.env.outputs.namespace }}"
+          kubectl rollout status deployment/todo-app-dep -n "$NS" --timeout=300s
+          kubectl rollout status deployment/todo-backend-dep -n "$NS" --timeout=300s
