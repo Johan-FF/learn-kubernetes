@@ -142,3 +142,71 @@ gcloud (winget, background install).
 L3. Description of the course structure captured from `docs/`: chapter-1 is the course brief,
 chapters 2-6 interleave theory (`*text*.md`) and exercise statements (`*exercise*.md`), 54
 exercise files spanning 1.1 -> 5.9.
+
+L4. Environment findings that matter for every later exercise:
+- Docker Desktop runs cgroup v1, so k3s >= 1.35 refuses to start the kubelet. The cluster is
+  pinned to `rancher/k3s:v1.34.1-k3s1`, matching the course material.
+- k3d writes the API server as `host.docker.internal:<random port>`, which does not resolve to a
+  reachable address here; `~/.kube/config` was rewritten to `127.0.0.1:<port>` (backup at
+  `~/.kube/config.bak`).
+- `k3d image import --mode direct` is about twice as fast as the default mode (~110s vs ~220s).
+- A rebuilt image with an unchanged tag is not picked up unless `kubectl rollout restart` runs,
+  because the deployments use `imagePullPolicy: IfNotPresent`.
+- Traefik routes by path globally, so the three local applications use separate paths:
+  `log_output` on `/`, `ping_pong` on `/pingpong`, `todo_app` on `/todo` (the app strips the
+  `/todo` prefix).
+
+L5. Progress: chapter 2 (exercises 1.1-1.13) complete, each verified on the local k3d cluster and
+tagged. Deliverables in the repository: `log_output` (writer/reader split, Ingress, shared PV),
+`ping_pong` (counter backed by the shared PV), `todo_app` (HTML page, image cache on a PVC, todo
+form with a hardcoded list), `volumes` (the two PersistentVolumes and their claims) and
+`scripts/release.ps1` (build, import, apply, commit, tag, optional publish).
+
+L6. Pending before the work is deliverable: the submission repository does not exist yet, so the
+root `README.md` still points to `https://github.com/REPLACE_ME/...` and no release has been
+published. Chapter 3 needs a Google Cloud project with billing.
+
+L7. Submission repository resolved: `https://github.com/Johan-FF/learn-kubernetes`. Remote added,
+all tags pushed and a GitHub release created per exercise. Exercises 1.1-2.10, 4.1-4.3, 4.5 and
+4.6 are complete, verified on the cluster and published (19 of 54). Exercises 4.x were done before
+3.x because chapter 3 requires GKE, which is blocked on a Google Cloud account with billing.
+
+L8. Platform installs on the local cluster: `nats` namespace with the `my-nats` Helm release
+(exercise 4.6) and `monitoring` namespace with `prom`, `loki`, `k8smon` (Alloy) and `grafana`
+(exercises 2.10, 4.3). Loki runs without the memcached caches because they do not fit on this
+single-node cluster.
+
+
+
+## Final state
+
+All 54 exercises (1.1 - 5.9) are complete, verified on a cluster and published as GitHub releases
+with the exercise number as the tag. The exercise table in `README.md` links each one.
+
+Per chapter:
+
+- Chapters 2 and 3 (1.1-2.10): local k3d cluster, namespaces, ConfigMaps and Secrets, PostgreSQL
+  StatefulSets, CronJobs, Loki and Grafana.
+- Chapter 4 (3.1-3.12): GKE with private nodes and Cloud NAT, Ingress then Gateway API with URL
+  rewrite, Kustomize, GitHub Actions with Workload Identity Federation, per-branch namespaces,
+  a cleanup workflow, the DBaaS comparison, `pg_dump` to Cloud Storage, resource tuning and the
+  log screenshot.
+- Chapter 5 (4.1-4.10): probes, the break-the-app button, PromQL, Argo Rollouts canary with a CPU
+  AnalysisTemplate, the Done field, NATS with a six-replica broadcaster, ArgoCD with staging and
+  production environments, and the repository split.
+- Chapter 6 (5.1-5.9): a hand written DummySite CRD and controller in Go, Istio ambient with Kiali
+  and a greeter traffic split, the init container and sidecar page, the platform comparison,
+  Knative with scale to zero and revision traffic splitting, the Ping-pong service on Knative, the
+  landscape marking and the submission.
+
+Known limitation, recorded honestly: in exercise 5.3 the greeter HTTPRoute is accepted and the
+service is mapped to its waypoint, but the observed traffic distribution stayed close to 50/50
+instead of 75/25 (see `istio/README.md`).
+
+## Human dependencies that were resolved
+
+- GitHub: repository `Johan-FF/learn-kubernetes`, public, releases for every exercise.
+- Google Cloud: project `project-74b28d99-70ba-47ca-9bc` (the project quota prevented creating a
+  new one), billing account `01D133-CFA0D3-D9B707`, GKE `dwk-cluster` in `europe-north1-a`.
+- The organisation policy on external IPs forced private nodes plus Cloud NAT, and the policy on
+  service account keys forced Workload Identity Federation for the pipeline.
