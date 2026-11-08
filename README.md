@@ -75,3 +75,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 4.6 | The project, step 23 | `broadcaster/`, `todo_backend/` | [4.6](https://github.com/Johan-FF/learn-kubernetes/tree/4.6/broadcaster) |
 | 2.10 | The project, step 13 | `todo_backend/`, `infra/monitoring/` | [2.10](https://github.com/Johan-FF/learn-kubernetes/tree/2.10/todo_backend) |
 | 4.3 | Prometheus | `infra/monitoring/` | [4.3](https://github.com/Johan-FF/learn-kubernetes/tree/4.3/infra/monitoring) |
+| 3.1 | Pingpong GKE | `gke/3.1/` | [3.1](https://github.com/Johan-FF/learn-kubernetes/tree/3.1/gke/3.1) |
