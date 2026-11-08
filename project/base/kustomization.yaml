@@ -12,3 +12,5 @@ resources:
   - todo-backend.yaml
   - todo-generator.yaml
   - gateway.yaml
+  - backup.yaml
+  - backup-cronjob.yaml

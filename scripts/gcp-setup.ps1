@@ -72,8 +72,19 @@ if ($LASTEXITCODE -ne 0) {
     --machine-type=$MachineType `
     --disk-size=20GB `
     --enable-ip-alias `
+    --enable-private-nodes `
+    --workload-pool="$ProjectId.svc.id.goog" `
+    --scopes=https://www.googleapis.com/auth/cloud-platform `
     --release-channel=regular 2>&1 | Select-Object -Last 3
 }
+
+Step "opening the control plane endpoint"
+# Private nodes, but the control plane still needs to accept connections from the CI runners,
+# whose addresses are not stable, so the authorised network is left open and authentication
+# remains the only gate.
+gcloud container clusters update $Cluster --zone $Zone `
+  --enable-master-authorized-networks `
+  --master-authorized-networks "0.0.0.0/0" 2>&1 | Select-Object -Last 2
 
 Step "fetching credentials"
 gcloud container clusters get-credentials $Cluster --zone=$Zone 2>&1 | Out-Null

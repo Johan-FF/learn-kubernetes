@@ -15,3 +15,6 @@ images:
   - name: todo-generator
     newName: europe-north1-docker.pkg.dev/project-74b28d99-70ba-47ca-9bc/dwk/todo-generator
     newTag: "3.5"
+  - name: todo-backup
+    newName: europe-north1-docker.pkg.dev/project-74b28d99-70ba-47ca-9bc/dwk/backup
+    newTag: "3.10"
