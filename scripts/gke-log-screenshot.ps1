@@ -7,6 +7,10 @@
   This script reads the real log entries through `gcloud logging read` and renders them into an
   image so the repository holds a durable artefact instead of a screenshot of a console tab.
 
+  Filtering by the message is done locally: passing a filter with spaces through PowerShell to
+  gcloud is unreliable, so the API filter only narrows by resource and the text match happens
+  here.
+
 .EXAMPLE
   .\scripts\gke-log-screenshot.ps1 -Output "project/logs/todo-created.png"
 #>
@@ -16,7 +20,7 @@ param(
   [string]$Namespace = 'project',
   [string]$Container = 'todo-backend',
   [string]$Filter = 'A todo was created',
-  [int]$Limit = 12,
+  [int]$Limit = 10,
   [string]$Output = 'project/logs/todo-created.png'
 )
 
@@ -25,17 +29,13 @@ $env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Env
 $root = Split-Path -Parent $PSScriptRoot
 $Output = Join-Path $root $Output
 
-$query = @"
-resource.type="k8s_container"
-resource.labels.namespace_name="$Namespace"
-resource.labels.container_name="$Container"
-textPayload:"$Filter"
-"@
+$query = "resource.labels.namespace_name=`"$Namespace`" AND resource.labels.container_name=`"$Container`""
 
 Write-Host "== reading logs from Cloud Logging" -ForegroundColor Cyan
-$raw = gcloud logging read $query --project $ProjectId --limit $Limit --format=json --order=desc 2>&1 | Out-String
-$entries = $raw | ConvertFrom-Json
-if (-not $entries) { throw 'no log entries matched the filter' }
+$raw = gcloud logging read $query --project $ProjectId --limit 400 --format=json 2>&1 | Out-String
+$entries = $raw | ConvertFrom-Json | Where-Object { $_.textPayload -like "*$Filter*" } | Select-Object -First $Limit
+
+if (-not $entries) { throw "no log entries contained '$Filter'" }
 
 $lines = foreach ($e in $entries) {
   $ts = ([datetime]$e.timestamp).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss')
@@ -46,8 +46,8 @@ Add-Type -AssemblyName System.Drawing
 
 $width = 1180
 $lineHeight = 26
-$headerHeight = 74
-$height = $headerHeight + ($lines.Count * $lineHeight) + 30
+$headerHeight = 78
+$height = $headerHeight + ($lines.Count * $lineHeight) + 34
 
 $bitmap = New-Object System.Drawing.Bitmap($width, $height)
 $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
@@ -67,10 +67,10 @@ $smallFont = New-Object System.Drawing.Font('Segoe UI', 9)
 $monoFont = New-Object System.Drawing.Font('Consolas', 10)
 
 $graphics.DrawString('Logs Explorer  —  GKE', $titleFont, $text, 20, 12)
-$graphics.DrawString("cluster dwk-cluster · namespace $Namespace · container $Container", $smallFont, $muted, 20, 42)
-$graphics.DrawString("filter: $Filter", $smallFont, $accent, 640, 42)
+$graphics.DrawString("cluster dwk-cluster · namespace $Namespace · container $Container", $smallFont, $muted, 20, 44)
+$graphics.DrawString("match: $Filter", $smallFont, $accent, 700, 44)
 
-$y = $headerHeight + 12
+$y = $headerHeight + 14
 foreach ($line in $lines) {
   $graphics.DrawString($line, $monoFont, $text, 22, $y)
   $y += $lineHeight
@@ -81,4 +81,4 @@ $bitmap.Save($Output, [System.Drawing.Imaging.ImageFormat]::Png)
 $graphics.Dispose()
 $bitmap.Dispose()
 
-Write-Host "saved $Output" -ForegroundColor Green
+Write-Host "saved $Output ($($lines.Count) entries)" -ForegroundColor Green

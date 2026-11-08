@@ -204,6 +204,7 @@ const server = http.createServer(async (req, res) => {
         [text],
       );
       sendJson(res, 201, rows[0]);
+      console.log(`created todo ${rows[0].id}: ${rows[0].text}`);
       publish(`A todo was created: ${rows[0].text}`);
     } catch (error) {
       console.error(`could not save todo: ${error.message}`);
