@@ -131,6 +131,16 @@ const todoList = (todos) => {
 };
 
 const healthReport = async () => {
+  // Liveness must not depend on downstream services: a database outage would otherwise
+  // restart the frontend forever. The backend and the database are checked by /readyz.
+  if (!isHealthy) {
+    return { status: 500, body: 'unhealthy on purpose' };
+  }
+
+  return { status: 200, body: 'ok' };
+};
+
+const readinessReport = async () => {
   if (!isHealthy) {
     return { status: 500, body: 'unhealthy on purpose' };
   }
@@ -187,6 +197,13 @@ const server = http.createServer(async (req, res) => {
     PUBLIC_PATH && req.url.startsWith(PUBLIC_PATH)
       ? req.url.slice(PUBLIC_PATH.length) || '/'
       : req.url;
+
+  if (req.method === 'GET' && url === '/readyz') {
+    const report = await readinessReport();
+    res.writeHead(report.status, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end(`${report.body}\n`);
+    return;
+  }
 
   if (req.method === 'GET' && url === '/healthz') {
     const report = await healthReport();
