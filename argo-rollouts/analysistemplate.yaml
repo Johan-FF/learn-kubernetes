@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: namespace-cpu
+  namespace: exercises
+spec:
+  # The default threshold, overridable per rollout step with args.
+  args:
+    - name: cpu_limit_millicores
+      value: "150"
+  metrics:
+    # Sums the CPU usage of every container in the namespace. The threshold is deliberately
+    # generous: the namespaced workloads idle around 10-20 millicores, so 150 millicores leaves
+    # room for a normal spike but trips on a runaway loop.
+    - name: namespace-cpu
+      interval: 30s
+      count: 10 # ten samples over five minutes
+      failureLimit: 1
+      provider:
+        job:
+          spec:
+            backoffLimit: 0
+            template:
+              spec:
+                serviceAccountName: rollout-analysis
+                restartPolicy: Never
+                containers:
+                  - name: cpu-check
+                    image: alpine/k8s:1.31.0
+                    command:
+                      - sh
+                      - -c
+                      - |
+                        set -eu
+                        TOTAL=$(kubectl top pods -n exercises --no-headers 2>/dev/null \
+                          | awk '{v=$2; if (v ~ /m$/) {sub("m","",v); s+=v} else {s+=v*1000}} END {print int(s+0)}')
+                        LIMIT=${CPU_LIMIT_MILLICORES}
+                        echo "namespace exercises is using ${TOTAL}m, limit ${LIMIT}m"
+                        if [ "$TOTAL" -gt "$LIMIT" ]; then
+                          echo "over the limit, failing the analysis"
+                          exit 1
+                        fi
+                    env:
+                      - name: CPU_LIMIT_MILLICORES
+                        value: "{{args.cpu_limit_millicores}}"

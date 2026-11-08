@@ -93,3 +93,4 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 4.7 | Baby steps to GitOps | `argocd/` | [4.7](https://github.com/Johan-FF/learn-kubernetes/tree/4.7/argocd) |
 | 4.8 | The project, step 24 | `argocd/application-project.yaml` | [4.8](https://github.com/Johan-FF/learn-kubernetes/tree/4.8/project/overlays/local) |
 | 4.9 | The project, step 25 | `argocd/application-staging.yaml`, `argocd/application-production.yaml` | [4.9](https://github.com/Johan-FF/learn-kubernetes/tree/4.9/argocd) |
+| 4.4 | Your canary | `argo-rollouts/` | [4.4](https://github.com/Johan-FF/learn-kubernetes/tree/4.4/argo-rollouts) |
