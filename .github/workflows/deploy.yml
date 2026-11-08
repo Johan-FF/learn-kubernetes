@@ -1,4 +1,4 @@
-name: deploy
+name: build
 
 on:
   push:
@@ -8,7 +8,6 @@ on:
       - "todo_app/**"
       - "todo_backend/**"
       - "todo_generator/**"
-      - "project/**"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
@@ -21,7 +20,7 @@ env:
   TAG: ${{ github.sha }}
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,40 +45,17 @@ jobs:
           docker push "$REGISTRY/todo-backend:$TAG"
           docker push "$REGISTRY/todo-generator:$TAG"
 
-      - uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ vars.GKE_CLUSTER }}
-          location: ${{ vars.GCP_ZONE }}
-
-      - name: Install kustomize
+      - name: Summary
         run: |
-          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
-          sudo mv kustomize /usr/local/bin/
-
-      - name: Choose the environment namespace
-        id: env
-        run: |
-          if [ "$GITHUB_REF_NAME" = "main" ]; then
-            NS=project
-          else
-            NS=$(printf '%s' "$GITHUB_REF_NAME" | tr '[:upper:]_/' '[:lower:]--')
-          fi
-          echo "namespace=$NS" >> "$GITHUB_OUTPUT"
-          echo "deploying to namespace $NS"
-
-      - name: Point the overlay at the environment and the built images
-        working-directory: project/overlays/gke
-        run: |
-          kustomize edit set namespace "${{ steps.env.outputs.namespace }}"
-          kustomize edit set image "todo-app=$REGISTRY/todo-app:$TAG"
-          kustomize edit set image "todo-backend=$REGISTRY/todo-backend:$TAG"
-          kustomize edit set image "todo-generator=$REGISTRY/todo-generator:$TAG"
-
-      - name: Deploy
-        run: kubectl apply -k project/overlays/gke
-
-      - name: Wait for the rollout
-        run: |
-          NS="${{ steps.env.outputs.namespace }}"
-          kubectl rollout status deployment/todo-app-dep -n "$NS" --timeout=300s
-          kubectl rollout status deployment/todo-backend-dep -n "$NS" --timeout=300s
+          {
+            echo "### Images built"
+            echo ""
+            echo '```'
+            echo "$REGISTRY/todo-app:$TAG"
+            echo "$REGISTRY/todo-backend:$TAG"
+            echo "$REGISTRY/todo-generator:$TAG"
+            echo '```'
+            echo ""
+            echo "Deployment happens from https://github.com/Johan-FF/learn-kubernetes-config,"
+            echo "where this tag is promoted (see exercise 4.10)."
+          } >> "$GITHUB_STEP_SUMMARY"

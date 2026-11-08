@@ -16,7 +16,7 @@ progresses:
 | `todo_app/` | Todo frontend, the course project |
 | `todo_backend/` | Todo backend, starting at exercise 2.2 |
 | `postgres/` | PostgreSQL manifests for the stateful exercises |
-| `project/` | Project umbrella manifests, Kustomize overlays, CI and GitOps |
+| `todo_generator/` | Hourly CronJob that adds a Wikipedia reading todo |
 | `volumes/` | Cluster-level PersistentVolumes and their claims |
 | `dummysite/` | DummySite CRD and controller (exercise 5.1) |
 | `wikipedia/` | Init container and sidecar exercise (5.4) |
@@ -94,3 +94,16 @@ k3d image import <app>:<tag> -c devops --mode direct
 | 4.8 | The project, step 24 | `argocd/application-project.yaml` | [4.8](https://github.com/Johan-FF/learn-kubernetes/tree/4.8/project/overlays/local) |
 | 4.9 | The project, step 25 | `argocd/application-staging.yaml`, `argocd/application-production.yaml` | [4.9](https://github.com/Johan-FF/learn-kubernetes/tree/4.9/argocd) |
 | 4.4 | Your canary | `argo-rollouts/` | [4.4](https://github.com/Johan-FF/learn-kubernetes/tree/4.4/argo-rollouts) |
+| 4.10 | The project, the grande finale | `learn-kubernetes-config` repository | [4.10](https://github.com/Johan-FF/learn-kubernetes-config) |
+
+## Two repositories (exercise 4.10)
+
+| Repository | Contents |
+| --- | --- |
+| [`learn-kubernetes`](https://github.com/Johan-FF/learn-kubernetes) (this one) | Application source code, Dockerfiles, the release tags and the CI pipeline that builds and pushes the images |
+| [`learn-kubernetes-config`](https://github.com/Johan-FF/learn-kubernetes-config) | Kustomize bases and overlays, the GKE exercise manifests and the ArgoCD Applications |
+
+The pipeline in this repository ends by pushing images tagged with the commit SHA. Promoting a
+version means updating that tag in the configuration repository, which is what ArgoCD watches.
+Application code and cluster state now change independently, and neither repository needs write
+access to the other.
