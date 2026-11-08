@@ -1,0 +1,71 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "todo_app/**"
+      - "todo_backend/**"
+      - "todo_generator/**"
+      - "project/**"
+      - ".github/workflows/deploy.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGISTRY: ${{ vars.GCP_REGISTRY }}
+  TAG: ${{ github.sha }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure docker for Artifact Registry
+        run: gcloud auth configure-docker europe-north1-docker.pkg.dev --quiet
+
+      - name: Build and push the images
+        run: |
+          set -e
+          docker build -t "$REGISTRY/todo-app:$TAG" todo_app
+          docker build -t "$REGISTRY/todo-backend:$TAG" todo_backend
+          docker build -t "$REGISTRY/todo-generator:$TAG" todo_generator
+          docker push "$REGISTRY/todo-app:$TAG"
+          docker push "$REGISTRY/todo-backend:$TAG"
+          docker push "$REGISTRY/todo-generator:$TAG"
+
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ vars.GKE_CLUSTER }}
+          location: ${{ vars.GCP_ZONE }}
+
+      - name: Install kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+
+      - name: Point the overlay at the built images
+        working-directory: project/overlays/gke
+        run: |
+          kustomize edit set image "todo-app=$REGISTRY/todo-app:$TAG"
+          kustomize edit set image "todo-backend=$REGISTRY/todo-backend:$TAG"
+          kustomize edit set image "todo-generator=$REGISTRY/todo-generator:$TAG"
+
+      - name: Deploy
+        run: kubectl apply -k project/overlays/gke
+
+      - name: Wait for the rollout
+        run: |
+          kubectl rollout status deployment/todo-app-dep -n project --timeout=300s
+          kubectl rollout status deployment/todo-backend-dep -n project --timeout=300s
