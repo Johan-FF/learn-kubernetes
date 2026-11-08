@@ -39,7 +39,7 @@ spec:
             limits:
               memory: 128Mi
         - name: reader
-          image: log-output-reader:4.1
+          image: log-output-reader:5.3
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -50,6 +50,8 @@ spec:
               value: /usr/src/app/files/output.txt
             - name: PING_URL
               value: http://ping-pong-svc:2345/pingpong
+            - name: GREETER_URL
+              value: http://greeter-svc:2345/
             - name: INFORMATION_FILE
               value: /usr/src/app/config/information.txt
             - name: MESSAGE

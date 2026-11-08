@@ -8,6 +8,7 @@ const LOG_FILE = process.env.LOG_FILE;
 const PING_URL = process.env.PING_URL;
 const INFORMATION_FILE = process.env.INFORMATION_FILE;
 const MESSAGE = process.env.MESSAGE;
+const GREETER_URL = process.env.GREETER_URL;
 
 const lastLogLine = () => {
   try {
@@ -45,6 +46,23 @@ const pingCount = async () => {
   }
 };
 
+const greeting = async () => {
+  if (!GREETER_URL) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(GREETER_URL);
+    if (!response.ok) {
+      return `unavailable (${response.status})`;
+    }
+
+    return (await response.text()).trim();
+  } catch (error) {
+    return `unreachable (${error.message})`;
+  }
+};
+
 const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && req.url === '/health') {
     const pongs = await pingCount();
@@ -60,12 +78,14 @@ const server = http.createServer(async (req, res) => {
   }
 
   const pongs = await pingCount();
+  const greeter = await greeting();
   res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
   res.end(
     `file content: ${informationFile()}\n` +
       `env variable: MESSAGE=${MESSAGE}\n` +
       `${lastLogLine()}\n` +
-      `Ping / Pongs: ${pongs}\n`,
+      `Ping / Pongs: ${pongs}\n` +
+      (greeter ? `Greetings: ${greeter}\n` : ''),
   );
 });
 
